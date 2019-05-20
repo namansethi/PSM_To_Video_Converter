@@ -1,0 +1,17 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="PsmToVideoConverter:jar">
+    <output-path>$PROJECT_DIR$/out/artifacts/PsmToVideoConverter_jar</output-path>
+    <root id="archive" name="PsmToVideoConverter.jar">
+      <element id="module-output" name="PsmToVideoConverter" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/lib/commons-cli-1.4.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/../IDV backup files/nicu_data_explorer/lib/commons-io-2.6.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$USER_HOME$/Downloads/commons-lang3-3.8.1-bin/commons-lang3-3.8.1/commons-lang3-3.8.1.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/lib/xuggle-xuggler-5.4.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/lib/logback-classic-1.2.3.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/lib/logback-core-1.2.3.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$USER_HOME$/Downloads/humble-video-arch-x86_64-w64-mingw32-0.3.0.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$USER_HOME$/Downloads/humble-video-noarch-0.3.0.jar" path-in-jar="/" />
+      <element id="extracted-dir" path="$PROJECT_DIR$/lib/slf4j-api-1.7.26.jar" path-in-jar="/" />
+    </root>
+  </artifact>
+</component>
