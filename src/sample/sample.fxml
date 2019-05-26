@@ -7,8 +7,9 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
+<?import org.controlsfx.control.RangeSlider?>
 
-<VBox fx:id="mainVbox" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/8.0.121" xmlns:fx="http://javafx.com/fxml/1" fx:controller="sample.Controller">
+<VBox fx:id="mainVbox" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/8.0.172-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="sample.Controller">
    <children>
       <HBox alignment="CENTER" prefHeight="100.0" prefWidth="600.0">
          <children>
@@ -19,9 +20,9 @@
             </Label>
          </children>
       </HBox>
-      <HBox alignment="CENTER" prefHeight="200.0" prefWidth="600.0">
+      <HBox alignment="CENTER" prefHeight="100.0" prefWidth="600.0">
          <children>
-            <VBox prefHeight="200.0" prefWidth="600.0">
+            <VBox maxHeight="-Infinity" prefHeight="80.0">
                <children>
                   <VBox alignment="BOTTOM_LEFT" maxHeight="-Infinity" prefHeight="30.0" prefWidth="600.0">
                      <children>
@@ -43,14 +44,46 @@
             </VBox>
          </children>
       </HBox>
-      <HBox alignment="CENTER" maxHeight="-Infinity" prefHeight="100.0" prefWidth="600.0">
+      <HBox alignment="CENTER_LEFT" prefHeight="100.0" prefWidth="200.0">
          <children>
-            <VBox alignment="CENTER" prefHeight="200.0" prefWidth="100.0">
+            <RangeSlider fx:id="thresholdSlider" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" orientation="VERTICAL" prefHeight="150.0" prefWidth="50.0">
+               <HBox.margin>
+                  <Insets left="20.0" />
+               </HBox.margin></RangeSlider>
+            <VBox prefHeight="200.0" prefWidth="100.0">
                <children>
-                  <Label fx:id="selectPSMFIleLabel" text="Select PSM File" />
-                  <Button fx:id="loadFileButton" mnemonicParsing="false" text="Load" />
+                  <Label fx:id="maxValueLabel" text="maxValue" />
+                  <Label fx:id="minValueLabel" text="minValue">
+                     <VBox.margin>
+                        <Insets top="100.0" />
+                     </VBox.margin>
+                  </Label>
                </children>
             </VBox>
+         </children>
+      </HBox>
+      <HBox alignment="CENTER" maxHeight="-Infinity" prefHeight="100.0" prefWidth="600.0">
+         <children>
+            <HBox alignment="CENTER" prefHeight="84.0" prefWidth="265.0">
+               <children>
+                  <Button fx:id="loadFileButton" mnemonicParsing="false" text="Load">
+                     <font>
+                        <Font size="18.0" />
+                     </font></Button>
+                  <Label fx:id="fileName">
+                     <HBox.margin>
+                        <Insets left="10.0" />
+                     </HBox.margin></Label>
+               </children>
+            </HBox>
+            <HBox alignment="CENTER" prefHeight="84.0" prefWidth="265.0">
+               <children>
+                  <Button fx:id="parseFileButton" mnemonicParsing="false" prefHeight="39.0" prefWidth="144.0" text="Parse and Save">
+                     <font>
+                        <Font size="18.0" />
+                     </font>
+                  </Button>
+               </children></HBox>
          </children></HBox>
    </children>
 </VBox>

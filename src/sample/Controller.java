@@ -7,19 +7,18 @@ import javafx.concurrent.Task;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
-import javafx.scene.control.*;
+import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
-import javafx.scene.layout.VBox;
+import javafx.scene.control.ProgressBar;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
-import javafx.stage.WindowEvent;
+import org.controlsfx.control.RangeSlider;
 
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
 public class Controller {
@@ -28,20 +27,30 @@ public class Controller {
     @FXML
     private Button loadFileButton;
     @FXML
+    private Button parseFileButton;
+    @FXML
     private Label loadingLabel;
+    @FXML
+    private Label minValueLabel;
+    @FXML
+    private Label maxValueLabel;
+    @FXML
+    private
+    RangeSlider thresholdSlider;
     @FXML
     private ProgressBar loadingBar;
     @FXML
-    private VBox mainVbox;
-
+    private Label fileName;
     private XsensorASCIIParser xsensorASCIIParser;
     private static final int FRAME_WIDTH = 500;
     private static final int FRAME_LENGTH = 400;
+    private File psmFile;
+    private File videoFile;
 
     private int totalNumberOfFrames;
     private PSMRecording psmRecording;
-    private float MAX_PRESSURE = 0.4f;
-    private float MIN_PRESSURE = 0.09f;
+    private float maxPressure = 0.4f;
+    private float minPressure = 0.09f;
     private ArrayList<BufferedImage> frameList;
     private Stage primaryStage;
     private IMediaWriter writer;
@@ -49,46 +58,38 @@ public class Controller {
     @FXML
     public void initialize() {
 
-      //  primaryStage = (Stage) mainVbox.getScene().getWindow();
-      //  primaryStage.getScene().getWindow().addEventFilter(WindowEvent.WINDOW_CLOSE_REQUEST, this::closeWindowEvent);
 
-        loadFileButton.setOnAction(this::convertPSMToVideo);
+        loadFileButton.setOnAction(event -> psmFile = openPsmFile(event));
+
+        parseFileButton.setOnAction(event -> convertPSMToVideo());
+
+        setSliderSettings();
 
 
     }
 
-    private void closeWindowEvent(WindowEvent event) {
-        System.out.println("Window close request ...");
+    private void setSliderSettings() {
 
-        if (psmRecording.getFrameHeader(0, "Frame").integerValue() != totalNumberOfFrames) {  // if the dataset has changed, alert the user with a popup
-            Alert alert = new Alert(Alert.AlertType.INFORMATION);
-            alert.getButtonTypes().remove(ButtonType.OK);
-            alert.getButtonTypes().add(ButtonType.CANCEL);
-            alert.getButtonTypes().add(ButtonType.YES);
-            alert.setTitle("Quit application");
-            alert.setContentText("Close without saving?");
-            alert.initOwner(primaryStage.getOwner());
-            Optional<ButtonType> res = alert.showAndWait();
+        thresholdSlider.setLowValue(minPressure);
+        thresholdSlider.setHighValue(maxPressure);
 
-            if (res.isPresent()) {
-                if (res.get().equals(ButtonType.CANCEL)) {
-                    event.consume();
-                }
-                else if(res.get().equals(ButtonType.YES)){
-                    if(writer != null) {
-                        writer.close();
-                    }
-                }
-            }
-        }
+        minValueLabel.textProperty().bind(thresholdSlider.lowValueProperty().asString());
+        maxValueLabel.textProperty().bind(thresholdSlider.highValueProperty().asString());
+
+
+
+
     }
 
-    private void convertPSMToVideo(ActionEvent event) {
+    private void convertPSMToVideo() {
+
+        maxPressure = Float.parseFloat(maxValueLabel.getText());
+        minPressure = Float.parseFloat(minValueLabel.getText());
 
 
-        File file = openPsmFile(event);
-        if (file != null) {
-            xsensorASCIIParser = new XsensorASCIIParser(file);
+
+        if (psmFile != null) {
+            xsensorASCIIParser = new XsensorASCIIParser(psmFile);
             if(xsensorASCIIParser.parseForFirstFrameNumber() == 1){
                 totalNumberOfFrames = xsensorASCIIParser.parseForLastFrameNumber();
 
@@ -104,8 +105,13 @@ public class Controller {
             xsensorASCIIParser.parseHeader();
 
             encodeVideo2((Stage) loadFileButton.getScene().getWindow());
+        }else{
+            Alert alert = new Alert(Alert.AlertType.INFORMATION);
+            alert.setTitle("Information Dialog");
+            alert.setHeaderText("You have not loaded a file yet");
+            alert.setContentText("Please use the load button to select a psmfile to parse.");
+            alert.showAndWait();
         }
-
 
     }
 
@@ -113,7 +119,11 @@ public class Controller {
 
         FileChooser fileChooser = new FileChooser();
         fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("PSM File (.csv)", "*.csv"));
-        return fileChooser.showOpenDialog(((Node) event.getTarget()).getScene().getWindow());
+        File file = fileChooser.showOpenDialog(((Node) event.getTarget()).getScene().getWindow());
+        if (file != null) {
+            fileName.setText(file.getName());
+        }
+        return file;
     }
 
 
@@ -124,45 +134,41 @@ public class Controller {
         fileChooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Video File (.mp4)", "*.mp4"));
         File outputFile = fileChooser.showSaveDialog(stage);
 
+        if(outputFile != null) {
+            String outputFilepath = outputFile.getAbsolutePath();
+            writer = ToolFactory.makeWriter(outputFilepath);
 
-        if (outputFile.exists()) {
-            outputFile.delete();
-        }
-
-        String outputFilepath = outputFile.getAbsolutePath();
-        writer = ToolFactory.makeWriter(outputFilepath);
-
-        writer.addVideoStream(0, 0, ICodec.ID.CODEC_ID_H264,FRAME_WIDTH, FRAME_LENGTH);
+            writer.addVideoStream(0, 0, ICodec.ID.CODEC_ID_H264, FRAME_WIDTH, FRAME_LENGTH);
 
 
+            final Task<Void> task = new Task<Void>() {
 
-        final Task<Void> task = new Task<Void>() {
+                @Override
+                protected Void call() throws Exception {
+                    for (int i = 0; i < totalNumberOfFrames; i++) {
+                        xsensorASCIIParser.parseFrame();
+                        updateMessage("Encoding Frame: " + psmRecording.getFrameHeader(0, "Frame").stringValue());
+                        BufferedImage drawnImage = drawFrame(psmRecording.getFrameData(0));
+                        writer.encodeVideo(0, drawnImage, (long) ((Math.pow(10, 9)) / 18) * i, TimeUnit.NANOSECONDS);
+                        updateProgress(i + 1, totalNumberOfFrames);
+                    }
+                    writer.close();
+                    updateMessage("Encoding Complete!");
 
-            @Override
-            protected Void call() throws Exception {
-                for (int i = 0; i < totalNumberOfFrames; i++) {
-                    xsensorASCIIParser.parseFrame();
-                    updateMessage("Encoding Frame: " + psmRecording.getFrameHeader(0, "Frame").stringValue());
-                    BufferedImage drawnImage = drawFrame(psmRecording.getFrameData(0));
-                    writer.encodeVideo(0, drawnImage, (long)((Math.pow(10,9)) / 18) * i, TimeUnit.NANOSECONDS);
-                    updateProgress(i + 1, totalNumberOfFrames);
+                    return null;
                 }
-                writer.close();
-                updateMessage("Encoding Complete!");
+            };
 
-                return null;
-            }
-        };
-
-        loadingBar.progressProperty().bind(
-                task.progressProperty()
-        );
-        loadingLabel.textProperty().bind(task.messageProperty());
+            loadingBar.progressProperty().bind(
+                    task.progressProperty()
+            );
+            loadingLabel.textProperty().bind(task.messageProperty());
 
 
-        Thread th = new Thread(task);
-        th.setDaemon(true);
-        th.start();
+            Thread th = new Thread(task);
+            th.setDaemon(true);
+            th.start();
+        }
     }
     private BufferedImage drawFrame(float[][] frameData) {
         int length = frameData.length;
@@ -189,7 +195,7 @@ public class Controller {
     private Color getColorForPressureValue(float value) {
         ColorMap colorMap = new ColorMap();
         int colorMapSize = colorMap.getColors().length;
-        int colorIndex = Math.round(((value - MIN_PRESSURE) * (colorMapSize - 1)) / (MAX_PRESSURE - MIN_PRESSURE));
+        int colorIndex = Math.round(((value - minPressure) * (colorMapSize - 1)) / (maxPressure - minPressure));
         if (colorIndex < 0) {
             colorIndex = 0;
         } else if (colorIndex > colorMapSize - 1) {

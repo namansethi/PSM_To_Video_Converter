@@ -61,7 +61,7 @@ public class XsensorASCIIParser {
 
             //Process the file header
             String headerLine;
-            while ((headerLine = br.readLine()) != null)                                    //TODO This checks out. No adjustments
+            while ((headerLine = br.readLine()) != null)
             {
                 if (headerLine.isEmpty() || headerLine.charAt(0) == ',') {
                     break;
